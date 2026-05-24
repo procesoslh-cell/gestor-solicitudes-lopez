@@ -1,4 +1,4 @@
-const API_URL=process.env.NEXT_PUBLIC_API_URL||'http://localhost:8000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 export function getToken(){if(typeof window==='undefined')return '';return localStorage.getItem('token')||''}
 export function authHeaders(){const t=getToken();return t?{Authorization:`Bearer ${t}`}:{} as any}
 async function parse(r:Response){if(!r.ok)throw new Error(await r.text());return r.json()}
