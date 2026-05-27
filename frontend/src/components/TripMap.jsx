@@ -1,12 +1,14 @@
+import { useEffect } from "react";
 import {
   MapContainer,
   TileLayer,
   Marker,
   Popup,
   Polyline,
+  useMap,
 } from "react-leaflet";
-
 import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 const visitedIcon = new L.Icon({
   iconUrl:
@@ -26,16 +28,32 @@ const pendingIcon = new L.Icon({
   iconAnchor: [12, 41],
 });
 
-export default function TripMap({ clients }) {
+function ResizeMapFix({ points }) {
+  const map = useMap();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+
+      if (points.length > 0) {
+        map.fitBounds(points, {
+          padding: [40, 40],
+          maxZoom: 14,
+        });
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [map, points]);
+
+  return null;
+}
+
+export default function TripMap({ clients = [] }) {
   const clientsWithCoords = clients
     .map((client) => {
-      const lat =
-        client.partner_latitude ||
-        client.visited_lat;
-
-      const lng =
-        client.partner_longitude ||
-        client.visited_lng;
+      const lat = client.partner_latitude || client.visited_lat;
+      const lng = client.partner_longitude || client.visited_lng;
 
       return {
         ...client,
@@ -45,10 +63,10 @@ export default function TripMap({ clients }) {
     })
     .filter(
       (client) =>
-        client.mapLat &&
-        client.mapLng &&
-        !Number.isNaN(client.mapLat) &&
-        !Number.isNaN(client.mapLng)
+        Number.isFinite(client.mapLat) &&
+        Number.isFinite(client.mapLng) &&
+        client.mapLat !== 0 &&
+        client.mapLng !== 0
     );
 
   if (clientsWithCoords.length === 0) {
@@ -60,10 +78,7 @@ export default function TripMap({ clients }) {
     );
   }
 
-  const center = [
-    clientsWithCoords[0].mapLat,
-    clientsWithCoords[0].mapLng,
-  ];
+  const center = [clientsWithCoords[0].mapLat, clientsWithCoords[0].mapLng];
 
   const route = clientsWithCoords.map((client) => [
     client.mapLat,
@@ -71,45 +86,43 @@ export default function TripMap({ clients }) {
   ]);
 
   return (
-    <div className="trip-map-wrapper">
-      <MapContainer
-        center={center}
-        zoom={12}
-        scrollWheelZoom={true}
-        className="trip-map"
-      >
-        <TileLayer
-          attribution="&copy; OpenStreetMap"
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+    <MapContainer
+      key={clientsWithCoords.map((client) => client.id).join("-")}
+      center={center}
+      zoom={12}
+      scrollWheelZoom
+      className="trip-leaflet-map"
+    >
+      <ResizeMapFix points={route} />
 
-        {clientsWithCoords.length > 1 && (
-          <Polyline positions={route} />
-        )}
+      <TileLayer
+        attribution="&copy; OpenStreetMap"
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
 
-        {clientsWithCoords.map((client, index) => {
-          const visited =
-            client.visit_status === "Visitado";
+      {clientsWithCoords.length > 1 && <Polyline positions={route} />}
 
-          return (
-            <Marker
-              key={client.id}
-              position={[client.mapLat, client.mapLng]}
-              icon={visited ? visitedIcon : pendingIcon}
-            >
-              <Popup>
-                <strong>
-                  #{index + 1} {client.cliente}
-                </strong>
-                <br />
-                {visited ? "Visitado" : "Pendiente"}
-                <br />
-                {client.visit_comment || ""}
-              </Popup>
-            </Marker>
-          );
-        })}
-      </MapContainer>
-    </div>
+      {clientsWithCoords.map((client, index) => {
+        const visited = client.visit_status === "Visitado";
+
+        return (
+          <Marker
+            key={`${client.id}-${client.mapLat}-${client.mapLng}`}
+            position={[client.mapLat, client.mapLng]}
+            icon={visited ? visitedIcon : pendingIcon}
+          >
+            <Popup>
+              <strong>
+                #{index + 1} {client.cliente}
+              </strong>
+              <br />
+              {visited ? "Visitado" : "Pendiente"}
+              <br />
+              {client.visit_comment || ""}
+            </Popup>
+          </Marker>
+        );
+      })}
+    </MapContainer>
   );
 }
