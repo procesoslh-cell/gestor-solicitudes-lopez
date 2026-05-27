@@ -52,7 +52,9 @@ function getTripClosureSla(trip) {
   const dueAt = new Date(endDate);
   dueAt.setDate(dueAt.getDate() + 3);
 
-  const diffHours = Math.ceil((dueAt.getTime() - now.getTime()) / 1000 / 60 / 60);
+  const diffHours = Math.ceil(
+    (dueAt.getTime() - now.getTime()) / 1000 / 60 / 60
+  );
 
   if (diffHours >= 0) {
     return {
@@ -94,7 +96,6 @@ export default function TripDetail({ tripId, user, onClose, onRefresh }) {
 
   useEffect(() => {
     loadTrip();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tripId]);
 
   async function readJson(response) {
@@ -246,7 +247,7 @@ export default function TripDetail({ tripId, user, onClose, onRefresh }) {
 
       setTimeout(() => {
         if (onClose) onClose();
-      }, 900);
+      }, 700);
     } catch (error) {
       console.error(error);
       setMessage(error.message || "Error cerrando la gira.");
@@ -287,7 +288,7 @@ export default function TripDetail({ tripId, user, onClose, onRefresh }) {
 
       setTimeout(() => {
         if (onClose) onClose();
-      }, 900);
+      }, 700);
     } catch (error) {
       console.error(error);
       setMessage(error.message || "Error guardando revisión.");
@@ -299,7 +300,7 @@ export default function TripDetail({ tripId, user, onClose, onRefresh }) {
   if (loading) {
     return (
       <div className="modal-overlay">
-        <div className="modal detail-modal">
+        <div className="modal trip-detail-modal">
           <div className="empty-box">Cargando gira...</div>
         </div>
       </div>
@@ -309,17 +310,20 @@ export default function TripDetail({ tripId, user, onClose, onRefresh }) {
   if (!trip) {
     return (
       <div className="modal-overlay">
-        <div className="modal detail-modal">
+        <div className="modal trip-detail-modal">
           <div className="empty-box">No se encontró la gira.</div>
-          <button className="secondary-button" onClick={onClose}>
-            Cerrar
-          </button>
+          <div className="trip-modal-footer">
+            <button className="secondary-button" onClick={onClose}>
+              Cerrar
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   const sla = getTripClosureSla(trip);
+
   const canCloseTrip =
     trip.status !== "Cerrada" &&
     trip.supervisor_status !== "Aprobada" &&
@@ -329,7 +333,7 @@ export default function TripDetail({ tripId, user, onClose, onRefresh }) {
 
   return (
     <div className="modal-overlay">
-      <div className="modal detail-modal trip-detail-modal">
+      <div className="modal trip-detail-modal">
         <div className="modal-header">
           <div>
             <p className="eyebrow">Detalle de gira</p>
@@ -343,238 +347,252 @@ export default function TripDetail({ tripId, user, onClose, onRefresh }) {
           <button onClick={onClose}>×</button>
         </div>
 
-        {message && <div className="radiography-error">{message}</div>}
+        {message && <div className="trip-message">{message}</div>}
 
-        <div className="request-top-grid">
-          <div className="request-main-info">
-            <section className="detail-section">
-              <h3>Resumen operativo</h3>
-
-              <div className="detail-grid">
-                <div className="detail-box">
-                  <strong>Estado cierre</strong>
-                  <span className={`sla-pill ${sla.className}`}>
-                    {sla.label}
-                  </span>
-                  <p>{sla.detail}</p>
-                </div>
-
-                <div className="detail-box">
-                  <strong>Clientes</strong>
-                  <p>{clients.length}</p>
-                </div>
-
-                <div className="detail-box">
-                  <strong>Visitados</strong>
-                  <p>{visitedClients.length}</p>
-                </div>
-
-                <div className="detail-box">
-                  <strong>Pendientes</strong>
-                  <p>{unvisitedClients.length}</p>
-                </div>
-
-                <div className="detail-box full">
-                  <strong>Objetivos / observaciones iniciales</strong>
-                  <p>{trip.observaciones || "Sin observaciones"}</p>
-                </div>
+        <div className="trip-detail-body">
+          <section className="trip-summary-panel">
+            <div className="detail-grid">
+              <div className="detail-box">
+                <strong>Estado cierre</strong>
+                <span className={`sla-pill ${sla.className}`}>
+                  {sla.label}
+                </span>
+                <p>{sla.detail}</p>
               </div>
-            </section>
 
-            <section className="detail-section">
+              <div className="detail-box">
+                <strong>Clientes</strong>
+                <p>{clients.length}</p>
+              </div>
+
+              <div className="detail-box">
+                <strong>Visitados</strong>
+                <p>{visitedClients.length}</p>
+              </div>
+
+              <div className="detail-box">
+                <strong>Pendientes</strong>
+                <p>{unvisitedClients.length}</p>
+              </div>
+            </div>
+          </section>
+
+          <div className="trip-detail-layout">
+            <section className="trip-clients-panel">
               <h3>Clientes de la gira</h3>
 
-              <div className="trip-client-list">
-                {clients.map((client) => (
-                  <button
-                    key={client.id}
-                    className={`trip-client-row ${
-                      selectedClient?.id === client.id ? "selected" : ""
-                    }`}
-                    onClick={() => setSelectedClient(client)}
-                  >
-                    <div className="trip-client-info">
-                      <strong>{client.cliente}</strong>
-                      <span>
-                        {client.visit_status || "Pendiente"}{" "}
-                        {client.visited_at ? `· ${formatDate(client.visited_at)}` : ""}
-                      </span>
-                    </div>
-
-                    <span
-                      className={
-                        client.visit_status === "Visitado"
-                          ? "status-active"
-                          : "status-inactive"
-                      }
+              <div className="trip-clients-list">
+                {clients.length === 0 ? (
+                  <div className="empty-box">No hay clientes asignados.</div>
+                ) : (
+                  clients.map((client) => (
+                    <button
+                      key={client.id}
+                      className={`trip-client-row ${
+                        selectedClient?.id === client.id ? "selected" : ""
+                      }`}
+                      onClick={() => setSelectedClient(client)}
                     >
-                      {client.visit_status === "Visitado" ? "Visitado" : "Pendiente"}
-                    </span>
-                  </button>
-                ))}
+                      <div className="trip-client-info">
+                        <strong>{client.cliente}</strong>
+                        <span>
+                          {client.visit_status || "Pendiente"}{" "}
+                          {client.visited_at
+                            ? `· ${formatDate(client.visited_at)}`
+                            : ""}
+                        </span>
+                      </div>
+
+                      <span
+                        className={
+                          client.visit_status === "Visitado"
+                            ? "status-active"
+                            : "status-inactive"
+                        }
+                      >
+                        {client.visit_status === "Visitado"
+                          ? "Visitado"
+                          : "Pendiente"}
+                      </span>
+                    </button>
+                  ))
+                )}
               </div>
             </section>
 
-            <section className="detail-section">
+            <section className="trip-map-panel">
               <h3>Mapa de la gira</h3>
-              <TripMap clients={clients} />
-            </section>
 
-            {canCloseTrip && (
-              <section className="detail-section">
-                <h3>Registrar visita</h3>
-                <p>
-                  Seleccioná un cliente, cargá comentario y registrá la ubicación
-                  del dispositivo.
-                </p>
-
-                <textarea
-                  className="trip-textarea"
-                  placeholder="Comentario de visita..."
-                  value={comment}
-                  onChange={(event) => setComment(event.target.value)}
-                />
-
-                <button
-                  className="primary-button trip-save-button"
-                  onClick={registerVisit}
-                  disabled={savingVisit}
-                >
-                  {savingVisit ? "Guardando visita..." : "Marcar visitado con ubicación"}
-                </button>
-              </section>
-            )}
-
-            <section className="detail-section">
-              <h3>Cierre de gira del asesor</h3>
-
-              <div className="trip-form-grid">
-                <input
-                  className="search-input"
-                  type="number"
-                  placeholder="Pedidos levantados"
-                  value={pedidos}
-                  onChange={(event) => setPedidos(event.target.value)}
-                  disabled={!canCloseTrip}
-                />
-
-                <input
-                  className="search-input"
-                  type="number"
-                  placeholder="Monto estimado"
-                  value={monto}
-                  onChange={(event) => setMonto(event.target.value)}
-                  disabled={!canCloseTrip}
-                />
+              <div className="trip-map-container">
+                <TripMap clients={clients} />
               </div>
+            </section>
+          </div>
+
+          {canCloseTrip && (
+            <section className="trip-close-panel">
+              <h3>Registrar visita</h3>
+              <p>
+                Seleccioná un cliente, cargá comentario y registrá la ubicación
+                del dispositivo.
+              </p>
 
               <textarea
                 className="trip-textarea"
-                placeholder="Resultado general de la gira, oportunidades, problemas detectados..."
-                value={observaciones}
-                onChange={(event) => setObservaciones(event.target.value)}
+                placeholder="Comentario de visita..."
+                value={comment}
+                onChange={(event) => setComment(event.target.value)}
+              />
+
+              <button
+                className="primary-button trip-save-button"
+                onClick={registerVisit}
+                disabled={savingVisit}
+              >
+                {savingVisit
+                  ? "Guardando visita..."
+                  : "Marcar visitado con ubicación"}
+              </button>
+            </section>
+          )}
+
+          <section className="trip-close-panel">
+            <h3>Cierre de gira del asesor</h3>
+
+            <div className="trip-form-grid">
+              <input
+                className="search-input"
+                type="number"
+                placeholder="Pedidos levantados"
+                value={pedidos}
+                onChange={(event) => setPedidos(event.target.value)}
                 disabled={!canCloseTrip}
               />
 
-              {canCloseTrip ? (
-                <button
-                  className="primary-button trip-save-button"
-                  onClick={closeTrip}
-                  disabled={closing}
-                >
-                  {closing ? "Cerrando..." : "Cerrar gira y enviar a revisión"}
-                </button>
-              ) : (
-                <div className="empty-box">
-                  La devolución del asesor ya fue enviada.
-                </div>
-              )}
-            </section>
-          </div>
-
-          <div className="request-side-panel">
-            <div className="side-card">
-              <h3>Control supervisor</h3>
-
-              {!trip.closed_at ? (
-                <div className="empty-box">
-                  Todavía falta la devolución del asesor.
-                </div>
-              ) : (
-                <>
-                  <div className="collection-summary-list">
-                    <div>
-                      <span>Pedidos</span>
-                      <strong>{trip.result_orders_count || 0}</strong>
-                    </div>
-
-                    <div>
-                      <span>Monto estimado</span>
-                      <strong>
-                        {Number(trip.result_estimated_amount || 0).toLocaleString(
-                          "es-AR",
-                          {
-                            style: "currency",
-                            currency: "ARS",
-                          }
-                        )}
-                      </strong>
-                    </div>
-
-                    <div>
-                      <span>Estado supervisor</span>
-                      <strong>{trip.supervisor_status || "Pendiente"}</strong>
-                    </div>
-                  </div>
-
-                  <label>
-                    Resultado supervisor
-                    <select
-                      className="status-filter"
-                      value={supervisorResult}
-                      onChange={(event) => setSupervisorResult(event.target.value)}
-                      disabled={!canReviewTrip}
-                    >
-                      <option>Aprobada</option>
-                      <option>Devuelta</option>
-                      <option>Observada</option>
-                    </select>
-                  </label>
-
-                  <textarea
-                    className="trip-textarea"
-                    placeholder="Devolución del supervisor, oportunidades, correcciones o acciones a seguir..."
-                    value={supervisorComments}
-                    onChange={(event) => setSupervisorComments(event.target.value)}
-                    disabled={!canReviewTrip}
-                  />
-
-                  {canReviewTrip && (
-                    <button
-                      className="primary-button trip-save-button"
-                      onClick={reviewTrip}
-                      disabled={reviewSaving}
-                    >
-                      {reviewSaving ? "Guardando..." : "Guardar revisión y cerrar"}
-                    </button>
-                  )}
-                </>
-              )}
+              <input
+                className="search-input"
+                type="number"
+                placeholder="Monto estimado"
+                value={monto}
+                onChange={(event) => setMonto(event.target.value)}
+                disabled={!canCloseTrip}
+              />
             </div>
 
-            <div className="side-card">
-              <h3>Resultado asesor</h3>
-              <p>{trip.result_notes || "Sin devolución cargada."}</p>
-            </div>
+            <textarea
+              className="trip-textarea"
+              placeholder="Resultado general de la gira, oportunidades, problemas detectados..."
+              value={observaciones}
+              onChange={(event) => setObservaciones(event.target.value)}
+              disabled={!canCloseTrip}
+            />
 
-            {trip.supervisor_comments && (
-              <div className="side-card">
-                <h3>Devolución supervisor</h3>
-                <p>{trip.supervisor_comments}</p>
-                <span>{trip.supervisor_reviewed_at || ""}</span>
+            {canCloseTrip ? (
+              <button
+                className="primary-button trip-save-button"
+                onClick={closeTrip}
+                disabled={closing}
+              >
+                {closing ? "Cerrando..." : "Cerrar gira y enviar a revisión"}
+              </button>
+            ) : (
+              <div className="empty-box">
+                La devolución del asesor ya fue enviada.
               </div>
             )}
-          </div>
+          </section>
+
+          <section className="trip-close-panel">
+            <h3>Control supervisor</h3>
+
+            {!trip.closed_at ? (
+              <div className="empty-box">
+                Todavía falta la devolución del asesor.
+              </div>
+            ) : (
+              <>
+                <div className="collection-summary-list">
+                  <div>
+                    <span>Pedidos</span>
+                    <strong>{trip.result_orders_count || 0}</strong>
+                  </div>
+
+                  <div>
+                    <span>Monto estimado</span>
+                    <strong>
+                      {Number(trip.result_estimated_amount || 0).toLocaleString(
+                        "es-AR",
+                        {
+                          style: "currency",
+                          currency: "ARS",
+                        }
+                      )}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>Estado supervisor</span>
+                    <strong>{trip.supervisor_status || "Pendiente"}</strong>
+                  </div>
+                </div>
+
+                <label>
+                  Resultado supervisor
+                  <select
+                    className="status-filter"
+                    value={supervisorResult}
+                    onChange={(event) =>
+                      setSupervisorResult(event.target.value)
+                    }
+                    disabled={!canReviewTrip}
+                  >
+                    <option>Aprobada</option>
+                    <option>Devuelta</option>
+                    <option>Observada</option>
+                  </select>
+                </label>
+
+                <textarea
+                  className="trip-textarea"
+                  placeholder="Devolución del supervisor, oportunidades, correcciones o acciones a seguir..."
+                  value={supervisorComments}
+                  onChange={(event) =>
+                    setSupervisorComments(event.target.value)
+                  }
+                  disabled={!canReviewTrip}
+                />
+
+                {canReviewTrip && (
+                  <button
+                    className="primary-button trip-save-button"
+                    onClick={reviewTrip}
+                    disabled={reviewSaving}
+                  >
+                    {reviewSaving ? "Guardando..." : "Guardar revisión y cerrar"}
+                  </button>
+                )}
+              </>
+            )}
+          </section>
+
+          <section className="trip-close-panel">
+            <h3>Resultado asesor</h3>
+            <p>{trip.result_notes || "Sin devolución cargada."}</p>
+          </section>
+
+          {trip.supervisor_comments && (
+            <section className="trip-close-panel">
+              <h3>Devolución supervisor</h3>
+              <p>{trip.supervisor_comments}</p>
+              <span>{trip.supervisor_reviewed_at || ""}</span>
+            </section>
+          )}
+        </div>
+
+        <div className="trip-modal-footer">
+          <button className="secondary-button" onClick={onClose}>
+            Cerrar
+          </button>
         </div>
       </div>
     </div>

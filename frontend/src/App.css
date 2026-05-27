@@ -3466,3 +3466,116 @@ body {
     grid-template-columns: 1fr;
   }
 }
+.trip-detail-modal {
+  width: 95vw;
+  max-width: 1320px;
+  max-height: 92vh;
+  overflow: hidden;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.trip-detail-modal .modal-header {
+  padding: 22px 28px;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.trip-message {
+  margin: 16px 28px 0;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-weight: 700;
+}
+
+.trip-detail-body {
+  overflow-y: auto;
+  padding: 22px 28px;
+}
+
+.trip-summary-panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 16px;
+  margin-bottom: 18px;
+}
+
+.trip-detail-layout {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 20px;
+  margin-bottom: 18px;
+}
+
+.trip-clients-panel,
+.trip-map-panel,
+.trip-close-panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.trip-clients-panel h3,
+.trip-map-panel h3,
+.trip-close-panel h3 {
+  margin-top: 0;
+}
+
+.trip-clients-list {
+  max-height: 430px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.trip-map-container {
+  height: 430px;
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.trip-map-container .leaflet-container {
+  height: 100%;
+  width: 100%;
+}
+
+.trip-close-panel {
+  margin-bottom: 18px;
+}
+
+.trip-modal-footer {
+  position: sticky;
+  bottom: 0;
+  background: white;
+  border-top: 1px solid #e2e8f0;
+  padding: 14px 28px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+  .trip-detail-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .trip-detail-modal {
+    width: 96vw;
+    max-height: 94vh;
+  }
+
+  .trip-map-container {
+    height: 320px;
+  }
+}
