@@ -1,0 +1,27 @@
+{
+  "cashDiscount": 0.08,
+  "ivaRate": 0.21,
+  "htmlStockMode": "status",
+  "lists": {
+    "bicipartes": {
+      "distribuidor": 0.35,
+      "mostrador": 0.28
+    },
+    "bicicletas": {
+      "distribuidor": 0.35,
+      "mostrador": 0.3
+    },
+    "motopartes": {
+      "distribuidor": 0.354,
+      "mostrador": 0.3
+    },
+    "movilidad": {
+      "distribuidor": 0.35,
+      "mostrador": 0.3
+    },
+    "autopartes": {
+      "distribuidor": 0.35,
+      "mostrador": 0.3
+    }
+  }
+}
